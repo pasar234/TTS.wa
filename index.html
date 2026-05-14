@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TTS Indo - Rekam Suara untuk WA</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: #0f172a; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 16px; 
+            margin: 0; 
+        }
+        .card { 
+            background: #1e293b; 
+            padding: 20px; 
+            border-radius: 28px; 
+            width: 100%; 
+            max-width: 500px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border: 1px solid #334155; 
+        }
+        h2 { text-align: center; margin-top: 0; font-size: 1.5rem; }
+        textarea { 
+            width: 100%; 
+            height: 110px; 
+            background: #0f172a; 
+            color: white; 
+            border: 1px solid #334155; 
+            border-radius: 16px; 
+            padding: 14px; 
+            margin-bottom: 16px; 
+            font-family: inherit; 
+            font-size: 15px; 
+            resize: vertical;
+        }
+        select { 
+            width: 100%; 
+            padding: 14px; 
+            background: #334155; 
+            color: white; 
+            border: none; 
+            border-radius: 14px; 
+            margin-bottom: 16px; 
+            font-size: 15px;
+        }
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 60px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            background: #0ea5e9; 
+            color: white; 
+            font-size: 17px; 
+            margin-bottom: 12px;
+        }
+        button:active { transform: scale(0.97); }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .warning-box { 
+            background: #451a03; 
+            border-left: 4px solid #f59e0b; 
+            padding: 12px 14px; 
+            border-radius: 16px; 
+            margin-bottom: 18px; 
+        }
+        .warning-box h4 { margin: 0 0 6px 0; color: #fbbf24; }
+        .warning-box p { margin: 0; color: #fde68a; font-size: 12px; }
+        #status { 
+            margin-top: 12px; 
+            padding: 12px; 
+            border-radius: 60px; 
+            font-size: 13px; 
+            text-align: center; 
+            font-weight: 500;
+        }
+        .success { background: #064e3b; color: #86efac; border: 1px solid #22c55e; }
+        .error { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
+        .info { background: #1e3a8a; color: #93c5fd; border: 1px solid #3b82f6; }
+        .recording { background: #991b1b; color: #fecaca; border: 1px solid #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        #downloadArea { 
+            display: none; 
+            margin-top: 20px; 
+            padding: 16px; 
+            background: #065a46; 
+            border-radius: 24px; 
+            border: 1px solid #34d399; 
+            text-align: center; 
+        }
+        .dl-btn { 
+            display: inline-block; 
+            margin-top: 12px; 
+            padding: 12px 20px; 
+            background: #22c55e; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 60px; 
+            font-weight: bold; 
+        }
+        audio { width: 100%; margin-top: 8px; border-radius: 40px; }
+        .volume-slider { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin: 12px 0 16px;
+            background: #0f172a;
+            padding: 8px 12px;
+            border-radius: 60px;
+        }
+        small { display: block; margin-top: 16px; color: #94a3b8; font-size: 11px; text-align: center; }
+        .test-btn {
+            background: #475569;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .test-btn:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🎙️ TTS Indo • Rekam untuk WA</h2>
+    
+    <div class="warning-box">
+        <h4>⚠️ ATURAN WAJIB AGAR SUARA KELUAR:</h4>
+        <p>✅ TEKAN DULU tombol "🔊 TEST SUARA" - jika suara keluar, baru tekan Rekam<br>
+        ✅ Volume HP HARUS KERAS (70% ke atas)<br>
+        ✅ Jangan pake headset / bluetooth speaker<br>
+        ✅ Pastikan mode SOUND ON (bukan silent/vibrate)<br>
+        ✅ Browser: Chrome atau browser bawaan HP</p>
+    </div>
+    
+    <textarea id="txt" placeholder="Ketik teks di sini...&#10;Contoh: Halo, selamat datang di aplikasi Text to Speech Indonesia."></textarea>
+    
+    <select id="voiceSelect">
+        <option value="wanita">👩 Suara Wanita (Indonesia)</option>
+        <option value="pria">👨 Suara Pria (Indonesia)</option>
+        <option value="cadel">🧒 Suara Cadel/Anak</option>
+    </select>
+    
+    <div class="volume-slider">
+        <span>🔊 Volume HP:</span>
+        <input type="range" id="volumeSlider" min="0" max="100" value="85">
+        <span id="volumeValue">85%</span>
+    </div>
+
+    <button id="testBtn" class="test-btn">🔊 TEST SUARA (Cek apakah suara keluar)</button>
+    <button id="recordBtn">🎤 REKAM & SIMPAN MP3</button>
+    
+    <div id="status" class="info">⚡ Tekan TEST SUARA dulu untuk cek suara!</div>
+
+    <div id="downloadArea">
+        <p style="margin:0 0 6px 0; font-weight:bold;">✅ Rekaman selesai!</p>
+        <audio id="audioPlayback" controls playsinline></audio>
+        <br>
+        <a id="dlLink" class="dl-btn" download>📁 DOWNLOAD FILE SUARA</a>
+        <p style="font-size:11px; margin:8px 0 0;">💬 Kirim file ke WhatsApp seperti biasa</p>
+    </div>
+    <small>🔊 Jika TEST SUARA tidak berbunyi, periksa volume HP dan izinkan browser memutar suara!</small>
+</div>
+
+<script>
+    (function() {
+        const recordBtn = document.getElementById('recordBtn');
+        const testBtn = document.getElementById('testBtn');
+        const txt = document.getElementById('txt');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const statusDiv = document.getElementById('status');
+        const downloadArea = document.getElementById('downloadArea');
+        const dlLink = document.getElementById('dlLink');
+        const audioPlayback = document.getElementById('audioPlayback');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let currentStream = null;
+        let voices = [];
+        let selectedVoice = null;
+        
+        volumeSlider.addEventListener('input', function() {
+            volumeValue.textContent = this.value + '%';
+        });
+        
+        function loadVoices() {
+            return new Promise((resolve) => {
+                let resolved = false;
+                const check = () => {
+                    const voicesList = window.speechSynthesis.getVoices();
+                    if (voicesList && voicesList.length > 0 && !resolved) {
+                        resolved = true;
+                        resolve(voicesList);
+                    }
+                };
+                check();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    check();
+                };
+                setTimeout(() => {
+                    if (!resolved) {
+                        resolve(window.speechSynthesis.getVoices() || []);
+                    }
+                }, 1500);
+            });
+        }
+        
+        function findIndonesianVoice(voicesList, type = "wanita") {
+            if (!voicesList || voicesList.length === 0) return null;
+            
+            let indoVoices = voicesList.filter(v => 
+                v.lang.includes('id') || v.lang.includes('ID') ||
+                v.name.toLowerCase().includes('indonesia')
+            );
+            if (indoVoices.length === 0) indoVoices = voicesList;
+            
+            if (type === "wanita") {
+                return indoVoices.find(v => v.name.toLowerCase().includes('female')) || indoVoices[0];
+            } else if (type === "pria") {
+                return indoVoices.find(v => v.name.toLowerCase().includes('male')) || indoVoices[0];
+            }
+            return indoVoices[0];
+        }
+        
+        async function initVoices() {
+            voices = await loadVoices();
+            const type = voiceSelect.value;
+            selectedVoice = findIndonesianVoice(voices, type);
+            recordBtn.disabled = false;
+            if (selectedVoice) {
+                console.log("Suara dipilih:", selectedVoice.name);
+            }
+        }
+        
+        voiceSelect.addEventListener('change', async () => {
+            const type = voiceSelect.value;
+            if (voices.length === 0) await initVoices();
+            selectedVoice = findIndonesianVoice(voices, type);
+        });
+        
+        // Fungsi untuk memutar suara dengan jaminan keluar
+        function speakText(text, voice, pitch, rate) {
+            return new Promise((resolve, reject) => {
+                if (!text) {
+                    reject("Teks kosong");
+                    return;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                if (voice) utterance.voice = voice;
+                if (pitch) utterance.pitch = pitch;
+                if (rate) utterance.rate = rate;
+                
+                let ended = false;
+                
+                utterance.onend = () => {
+                    if (!ended) {
+                        ended = true;
+                        resolve();
+                    }
+                };
+                
+                utterance.onerror = (err) => {
+                    if (!ended) {
+                        ended = true;
+                        reject(err);
+                    }
+                };
+                
+                // Hentikan antrian suara sebelumnya
+                window.speechSynthesis.cancel();
+                
+                // Delay kecil untuk memastikan cancel selesai
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterance);
+                }, 50);
+                
+                // Timeout safety
+                setTimeout(() => {
+                    if (!ended) {
+                        ended = true;
+                        reject(new Error("Timeout - suara tidak keluar"));
+                    }
+                }, 15000);
+            });
+        }
+        
+        // TEST SUARA - untuk memastikan speaker berfungsi
+        testBtn.onclick = async () => {
+            const testText = "Halo, tes suara. Satu dua tiga. Jika Anda mendengar suara ini, maka rekaman siap digunakan.";
+            statusDiv.innerHTML = "🔊 Sedang memutar suara TEST... pastikan volume keras!";
+            statusDiv.className = "info";
+            testBtn.disabled = true;
+            
+            try {
+                await speakText(testText, selectedVoice, 1, 0.95);
+                statusDiv.innerHTML = "✅ TEST BERHASIL! Suara keluar. Sekarang tekan REKAM.";
+                statusDiv.className = "success";
+            } catch (err) {
+                console.error("Test error:", err);
+                statusDiv.innerHTML = "❌ TEST GAGAL! Suara tidak keluar. Periksa: 1) Volume HP keras 2) Bukan mode silent 3) Coba buka di Chrome";
+                statusDiv.className = "error";
+            }
+            testBtn.disabled = false;
+        };
+        
+        function stopMicrophone() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+        
+        // REKAM
+        recordBtn.onclick = async () => {
+            const textToSpeak = txt.value.trim();
+            if (!textToSpeak) {
+                alert("Teks kosong! Silakan tulis teks terlebih dahulu.");
+                return;
+            }
+            
+            const volumeLevel = volumeSlider.value;
+            if (volumeLevel < 50) {
+                const confirmLow = confirm(`Volume speaker Anda hanya ${volumeLevel}%. Pastikan volume HP sudah keras! Lanjutkan?`);
+                if (!confirmLow) return;
+            }
+            
+            try {
+                recordBtn.disabled = true;
+                testBtn.disabled = true;
+                statusDiv.innerHTML = "🎤 Meminta izin microphone...";
+                statusDiv.className = "info";
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: true
+                    } 
+                });
+                
+                currentStream = stream;
+                audioChunks = [];
+                
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayback.src = audioUrl;
+                    dlLink.href = audioUrl;
+                    dlLink.download = `tts_rekaman_${Date.now()}.wav`;
+                    downloadArea.style.display = "block";
+                    statusDiv.innerHTML = "✅ Rekaman selesai! Klik DOWNLOAD, lalu kirim ke WhatsApp.";
+                    statusDiv.className = "success";
+                    recordBtn.disabled = false;
+                    testBtn.disabled = false;
+                    stopMicrophone();
+                };
+                
+                let recordingStarted = false;
+                mediaRecorder.start(100);
+                recordingStarted = true;
+                statusDiv.innerHTML = "🔴 MEREKAM... Suara akan keluar sebentar lagi. Jangan mute HP!";
+                statusDiv.className = "recording";
+                
+                // Siapkan parameter suara
+                let pitch = 1;
+                let rate = 0.95;
+                if (voiceSelect.value === "wanita") {
+                    pitch = 1.1;
+                    rate = 0.95;
+                } else if (voiceSelect.value === "pria") {
+                    pitch = 0.7;
+                    rate = 0.9;
+                } else if (voiceSelect.value === "cadel") {
+                    pitch = 1.3;
+                    rate = 0.85;
+                }
+                
+                try {
+                    await speakText(textToSpeak, selectedVoice, pitch, rate);
+                } catch (speakErr) {
+                    console.error("Speak error:", speakErr);
+                    statusDiv.innerHTML = "⚠️ Suara gagal diputar, tapi rekaman tetap disimpan.";
+                }
+                
+                // Hentikan rekaman setelah suara selesai
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === "recording") {
+                        mediaRecorder.stop();
+                    }
+                }, 800);
+                
+                // Timeout safety
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === "recording") {
+                        mediaRecorder.stop();
+                        statusDiv.innerHTML = "⚠️ Rekaman timeout, file tetap bisa didownload.";
+                        recordBtn.disabled = false;
+                        testBtn.disabled = false;
+                    }
+                }, 30000);
+                
+            } catch (err) {
+                console.error("Error:", err);
+                let errorMsg = "❌ Gagal akses microphone. ";
+                if (err.name === "NotAllowedError") {
+                    errorMsg = "❌ IZIN MICROPHONE DITOLAK! Buka pengaturan browser dan izinkan microphone.";
+                } else {
+                    errorMsg += err.message;
+                }
+                statusDiv.innerHTML = errorMsg;
+                statusDiv.className = "error";
+                recordBtn.disabled = false;
+                testBtn.disabled = false;
+                stopMicrophone();
+            }
+        };
+        
+        initVoices();
+        
+        // Pesan awal
+        setTimeout(() => {
+            statusDiv.innerHTML = "⚡ TEKAN TOMBOL 'TEST SUARA' DULU untuk cek apakah suara keluar!";
+        }, 500);
+    })();
+</script>
+</body>
+</html>
